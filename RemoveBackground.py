@@ -5,8 +5,8 @@ import numpy as np
 BLUR = 21
 CANNY_THRESH_1 = 10
 CANNY_THRESH_2 = 200
-MASK_DILATE_ITER = 10
-MASK_ERODE_ITER = 10
+MASK_DILATE_ITER = 1
+MASK_ERODE_ITER = 1
 MASK_COLOR = (1.0,1.0,1.0) # In BGR format
 
 def removeBackground(img) :
@@ -21,9 +21,7 @@ def removeBackground(img) :
     #-- Find contours in edges, sort by area ---------------------------------------------
     contour_info = []
     contours, b = cv2.findContours(edges, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
-    # Previously, for a previous version of cv2, this line was: 
-    #  contours, _ = cv2.findContours(edges, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
-    # Thanks to notes from commenters, I've updated the code but left this note
+
     for c in contours:
         contour_info.append((
             c,
@@ -51,8 +49,8 @@ def removeBackground(img) :
     masked = (mask_stack * img) + ((1-mask_stack) * MASK_COLOR) # Blend
     masked = (masked * 255).astype('uint8')                     # Convert back to 8-bit 
 
-    cv2.imshow('img', masked)                                   # Display
-    cv2.imwrite('img/aaa.jpg', masked)           # Save
+    # cv2.imshow('img', masked)                                   # Display
+    # cv2.imwrite('img/aaa.jpg', masked)           # Save
 
     return masked
 
