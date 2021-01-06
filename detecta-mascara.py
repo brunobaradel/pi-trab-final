@@ -12,31 +12,7 @@ def load_images_from_folder(folder):
             images.append(img)
     return images
 
-
-def findMask(obj):
-
-    for (x, y, w, h) in obj:
-        cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
-        roi_gray = gray[y:y + h, x:x + w]
-        roi_color = img[y:y + h, x:x + w]
-
-    mouth_rects = mouth_cascade.detectMultiScale(gray, 1.05, 30, minSize=(50, 50))
-
-    if(len(mouth_rects) == 0):
-        cv2.putText(img, weared_mask, org, font, font_scale, weared_mask_font_color, thickness, cv2.LINE_AA)
-        cv2.imwrite(f"./result/{opcao}/img{i}-Detectada4.jpg", img)
-
-    else:
-        for (mx, my, mw, mh) in mouth_rects:
-            if(y < my < y + h):
-                cv2.putText(img, not_wearing_mask, org, font, font_scale, not_wearing_mask_font_color, thickness, cv2.LINE_AA)
-                cv2.imwrite(f"./result/{opcao}/img{i}-naoDetectada2.jpg", img)
-                return
-
-        cv2.putText(img, weared_mask, org, font, font_scale, weared_mask_font_color, thickness, cv2.LINE_AA)
-        # cv2.rectangle(img, (mx, my), (mx + mh, my + mw), (0, 0, 255), 3)
-        cv2.imwrite(f"./result/{opcao}/img{i}-Detectada5.jpg", img)
-
+# multiple cascades: https://github.com/Itseez/opencv/tree/master/data/haarcascades
 
 face_cascade = cv2.CascadeClassifier('./cascade/haarcascade_frontalface_default.xml')
 eye_cascade = cv2.CascadeClassifier('./cascade/haarcascade_eye.xml')
@@ -57,18 +33,20 @@ weared_mask = "Mascara detectada"
 not_wearing_mask = "Mascara nao encontrada"
 i = 0
 
-opcao = int(input("Digite sua opção: [0] Sem máscara [1] Com máscara "))
+opcao = int(input("Digite sua opção: [0] Sem máscara [1] Com máscara: "))
 
 if opcao == 0:
     opcao = "semMascara"
 else:
     opcao = "comMascara"
 
-images = load_images_from_folder("./img/{}" .format(opcao))
+images = load_images_from_folder(f"./img/{opcao}")
 
 for img in images:
+    mouthInFace = False
+    eyesInFace = False
 
-    # Remove o background da imagem
+    # Remove background of image
     img = rb.removeBackground(img)
 
     # Convert Image into gray
@@ -91,15 +69,81 @@ for img in images:
             cv2.imwrite(f"./result/{opcao}/img{i}-naoEncontrouFace.jpg", img)
 
         else:
-            findMask(eyes)
+            for (x, y, w, h) in eyes:
+                roi_gray = gray[y:y + h, x:x + w]
+                roi_color = img[y:y + h, x:x + w]
+
+            mouth_rects = mouth_cascade.detectMultiScale(gray, 1.05, 30, minSize=(50, 50))
+
+            # Eyes detected but Lips not detected which means person is wearing mask
+            if(len(mouth_rects) == 0):
+                cv2.putText(img, weared_mask, org, font, font_scale, weared_mask_font_color, thickness, cv2.LINE_AA)
+                cv2.imwrite(f"./result/{opcao}/img{i}-Detectada1.jpg", img)
+
+            else:
+                for (x, y, w, h) in mouth_rects:
+                    roi_gray = gray[y:y + h, x:x + w]
+                    roi_color = img[y:y + h, x:x + w]
+
+                cv2.putText(img, weared_mask, org, font, font_scale, weared_mask_font_color, thickness, cv2.LINE_AA)
+                cv2.imwrite(f"./result/{opcao}/img{i}-Detectada2.jpg", img)  
 
     elif(len(faces) == 0 and len(faces_bw) == 1):
+        # It has been observed that for white mask covering mouth, with gray image face prediction is not happening
         cv2.putText(img, weared_mask, org, font, font_scale, weared_mask_font_color, thickness, cv2.LINE_AA)
         cv2.imwrite(f"./result/{opcao}/img{i}-Detectada3.jpg", img)
 
     else:
-        findMask(faces)
+        # Draw rectangle on face
+        for (x, y, w, h) in faces:
+            roi_gray = gray[y:y + h, x:x + w]
+            roi_color = img[y:y + h, x:x + w]
 
+        eyes = eye_cascade.detectMultiScale(gray, 1.03, 3)
+
+        if(len(eyes) == 0):
+                cv2.putText(img, "No face found...", org, font, font_scale, weared_mask_font_color, thickness, cv2.LINE_AA)
+                cv2.imwrite(f"./result/{opcao}/img{i}-naoEncontrouFace.jpg", img)
+        else:
+            for (mx, my, mw, mh) in eyes:
+                    if(y < my < y + h):
+                        # Face and Eyes are detected but eyes coordinates are within face coordinates which `means eyes prediction is true and
+                        # we successfully detected a face
+                        eyesInFace = True
+                        break
+            if(eyesInFace):
+                for (x, y, w, h) in eyes:
+                    roi_gray = gray[y:y + h, x:x + w]
+                    roi_color = img[y:y + h, x:x + w]
+
+                # Detect lips counters
+                mouth_rects = mouth_cascade.detectMultiScale(gray, 1.05, 30, minSize=(50, 50))
+
+                # Face detected but Lips not detected which means person is wearing mask
+                if(len(mouth_rects) == 0):
+                    cv2.putText(img, weared_mask, org, font, font_scale, weared_mask_font_color, thickness, cv2.LINE_AA)
+                    cv2.imwrite(f"./result/{opcao}/img{i}-Detectada4.jpg", img)
+                else:
+                    for (x, y, w, h) in mouth_rects:
+                        roi_gray = gray[y:y + h, x:x + w]
+                        roi_color = img[y:y + h, x:x + w]
+
+                    for (mx, my, mw, mh) in mouth_rects:
+                        if(y < my < y + h):
+                            # Face and Lips are detected but lips coordinates are within face cordinates which `means lips prediction is true and
+                            # person is not waring mask
+                            mouthInFace = True
+                            cv2.putText(img, not_wearing_mask, org, font, font_scale, not_wearing_mask_font_color, thickness, cv2.LINE_AA)
+                            cv2.imwrite(f"./result/{opcao}/img{i}-naoDetectada5.jpg", img)
+                            break
+                    if(not mouthInFace): 
+                        cv2.putText(img, weared_mask, org, font, font_scale, weared_mask_font_color, thickness, cv2.LINE_AA)
+                        cv2.imwrite(f"./result/{opcao}/img{i}-detectada6.jpg", img) 
+            else:
+                cv2.putText(img, not_wearing_mask, org, font, font_scale,
+                            not_wearing_mask_font_color, thickness, cv2.LINE_AA)
+                cv2.imwrite(
+                    f"./result/{opcao}/img{i}-naoDetectada7.jpg", img)
     i = i+1
 
 cv2.waitKey()
