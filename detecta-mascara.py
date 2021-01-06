@@ -24,18 +24,18 @@ def findMask(obj):
 
     if(len(mouth_rects) == 0):
         cv2.putText(img, weared_mask, org, font, font_scale, weared_mask_font_color, thickness, cv2.LINE_AA)
-        cv2.imwrite(f"./result/semMascara/img{i}-Detectada4.jpg", img)
+        cv2.imwrite(f"./result/{opcao}/img{i}-Detectada4.jpg", img)
 
     else:
         for (mx, my, mw, mh) in mouth_rects:
             if(y < my < y + h):
                 cv2.putText(img, not_wearing_mask, org, font, font_scale, not_wearing_mask_font_color, thickness, cv2.LINE_AA)
-                cv2.imwrite(f"./result/semMascara/img{i}-naoDetectada2.jpg", img)
+                cv2.imwrite(f"./result/{opcao}/img{i}-naoDetectada2.jpg", img)
                 return
 
         cv2.putText(img, weared_mask, org, font, font_scale, weared_mask_font_color, thickness, cv2.LINE_AA)
         # cv2.rectangle(img, (mx, my), (mx + mh, my + mw), (0, 0, 255), 3)
-        cv2.imwrite(f"./result/semMascara/img{i}-Detectada5.jpg", img)
+        cv2.imwrite(f"./result/{opcao}/img{i}-Detectada5.jpg", img)
 
 
 face_cascade = cv2.CascadeClassifier('./cascade/haarcascade_frontalface_default.xml')
@@ -56,7 +56,15 @@ font_scale = 1
 weared_mask = "Mascara detectada"
 not_wearing_mask = "Mascara nao encontrada"
 i = 0
-images = load_images_from_folder("./img/com-mascara")
+
+opcao = int(input("Digite sua opção: [0] Sem máscara [1] Com máscara "))
+
+if opcao == 0:
+    opcao = "semMascara"
+else:
+    opcao = "comMascara"
+
+images = load_images_from_folder("./img/{}" .format(opcao))
 
 for img in images:
 
@@ -80,14 +88,14 @@ for img in images:
 
         if(len(eyes) == 0):
             cv2.putText(img, "No face found...", org, font, font_scale, weared_mask_font_color, thickness, cv2.LINE_AA)
-            cv2.imwrite(f"./result/semMascara/img{i}-naoEncontrouFace.jpg", img)
+            cv2.imwrite(f"./result/{opcao}/img{i}-naoEncontrouFace.jpg", img)
 
         else:
             findMask(eyes)
 
     elif(len(faces) == 0 and len(faces_bw) == 1):
         cv2.putText(img, weared_mask, org, font, font_scale, weared_mask_font_color, thickness, cv2.LINE_AA)
-        cv2.imwrite(f"./result/semMascara/img{i}-Detectada3.jpg", img)
+        cv2.imwrite(f"./result/{opcao}/img{i}-Detectada3.jpg", img)
 
     else:
         findMask(faces)
