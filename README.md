@@ -11,7 +11,7 @@ O objetivo deste trabalho é, por meio de ferramentas de processamento de imagen
 - Bruno Sacconi Peres
 - Lucas Granja Toniello
 - Pedro de Souza Vieira Coelho
-- Vinicius Brandão Cresphi
+- Vinicius Brandão Crepschi
 
 ### Requisitos
 
@@ -20,13 +20,10 @@ O objetivo deste trabalho é, por meio de ferramentas de processamento de imagen
 
 ### Instalando dependências
 
-- O arquivo requirements.txt contém todas as dependências necessárias, para baixar ele siga os seguintes passos:
-  - Crie um ambiente virtual, executando o seguinte comando em seu terminal:
-    ``` python3 -m venv <nome_pasta> ```
-  - Ative seu ambiente virtual, executando o seguinte comando em seu terminal: 
-    ``` source <nome_pasta/bin/activate> ```
-  - Instale as dependências, executando o seguinte comando em seu terminal: 
-    ``` pip install -r requirements.txt ```
+- Primeiro devemos instalar a biblioteca opencv do python, através do seguinte comando em seu terminal:
+  - ``` pip install opencv-python ```
+- Agora devemos instalar nossa segunda dependência, que seria a biblioteca numpy, para efetuar a instalação, execute o seguinte comando em seu terminal:
+  - ``` pip install numpy ```
   
 ### Executando o programa
 
