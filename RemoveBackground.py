@@ -1,3 +1,5 @@
+#Algoritmo retirado de: https://stackoverflow.com/questions/29313667/how-do-i-remove-the-background-from-this-kind-of-image, no comentário escrito pelo usuário: jedwards#
+
 import cv2
 import numpy as np
 
@@ -48,9 +50,6 @@ def removeBackground(img) :
 
     masked = (mask_stack * img) + ((1-mask_stack) * MASK_COLOR) # Blend
     masked = (masked * 255).astype('uint8')                     # Convert back to 8-bit 
-
-    # cv2.imshow('img', masked)                                   # Display
-    # cv2.imwrite('img/aaa.jpg', masked)           # Save
 
     return masked
 
