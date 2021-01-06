@@ -33,10 +33,11 @@ weared_mask = "Mascara detectada"
 not_wearing_mask = "Mascara nao encontrada"
 i = 0
 bandeira = False
-images = load_images_from_folder("./img/sem-mascara")
+images = load_images_from_folder("./img/com-mascara")
 
 for img in images:
     bandeira = False
+    bandeira2 = False
     # Read video
     # img = cv2.imread("./img/mascara-escura.png")
 
@@ -62,11 +63,11 @@ for img in images:
 
         if(len(eyes) == 0):
             cv2.putText(img, "No face found...", org, font, font_scale, weared_mask_font_color, thickness, cv2.LINE_AA)
-            cv2.imwrite(f"./result/semMascara/img{i}-naoEncontrouFace.jpg", img)
+            cv2.imwrite(f"./result/comMascara/img{i}-naoEncontrouFace.jpg", img)
 
         else:
             for (x, y, w, h) in eyes:
-                cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                # cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
                 roi_gray = gray[y:y + h, x:x + w]
                 roi_color = img[y:y + h, x:x + w]
 
@@ -75,61 +76,81 @@ for img in images:
             # Eyes detected but Lips not detected which means person is wearing mask
             if(len(mouth_rects) == 0):
                 cv2.putText(img, weared_mask, org, font, font_scale, weared_mask_font_color, thickness, cv2.LINE_AA)
-                cv2.imwrite(f"./result/semMascara/img{i}-Detectada1.jpg", img)
+                cv2.imwrite(f"./result/comMascara/img{i}-Detectada1.jpg", img)
 
             else:
-                for (mx, my, mw, mh) in mouth_rects:
+                for (x, y, w, h) in mouth_rects:
+                    # cv2.rectangle(img, (x, y), (x + w, y + h), (0, 0, 255), 2)
+                    roi_gray = gray[y:y + h, x:x + w]
+                    roi_color = img[y:y + h, x:x + w]
 
-                    if(y < my < y + h):
-                        # Face and Lips are detected but lips coordinates are within face cordinates which `means lips prediction is true and
-                        # person is not waring mask
-                        cv2.putText(img, not_wearing_mask, org, font, font_scale, not_wearing_mask_font_color, thickness, cv2.LINE_AA)
-                        cv2.rectangle(img, (mx, my), (mx + mh, my + mw), (0, 0, 255), 3)
-                        cv2.imwrite(f"./result/semMascara/img{i}-naoDetectada1.jpg", img)
-                        bandeira = True
-                        break
- 
-                if(not bandeira):    
-                    cv2.putText(img, weared_mask, org, font, font_scale, weared_mask_font_color, thickness, cv2.LINE_AA)
-                    # cv2.rectangle(img, (mx, my), (mx + mh, my + mw), (0, 0, 255), 3)
-                    cv2.imwrite(f"./result/semMascara/img{i}-Detectada2.jpg", img)    
+                cv2.putText(img, weared_mask, org, font, font_scale, weared_mask_font_color, thickness, cv2.LINE_AA)
+                # cv2.rectangle(img, (mx, my), (mx + mh, my + mw), (0, 0, 255), 3)
+                cv2.imwrite(f"./result/comMascara/img{i}-Detectada2.jpg", img)  
 
     elif(len(faces) == 0 and len(faces_bw) == 1):
         # It has been observed that for white mask covering mouth, with gray image face prediction is not happening
         cv2.putText(img, weared_mask, org, font, font_scale, weared_mask_font_color, thickness, cv2.LINE_AA)
-        cv2.imwrite(f"./result/semMascara/img{i}-Detectada3.jpg", img)
+        cv2.imwrite(f"./result/comMascara/img{i}-Detectada3.jpg", img)
+
     else:
         # Draw rectangle on face
         for (x, y, w, h) in faces:
-            cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
+            # cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
             roi_gray = gray[y:y + h, x:x + w]
             roi_color = img[y:y + h, x:x + w]
 
+        eyes = eye_cascade.detectMultiScale(gray, 1.03, 3)
 
-            # Detect lips counters
-            mouth_rects = mouth_cascade.detectMultiScale(gray, 1.05, 30, minSize=(50, 50))
-
-        # Face detected but Lips not detected which means person is wearing mask
-        if(len(mouth_rects) == 0):
-            cv2.putText(img, weared_mask, org, font, font_scale, weared_mask_font_color, thickness, cv2.LINE_AA)
-            cv2.imwrite(f"./result/semMascara/img{i}-Detectada4.jpg", img)
+        if(len(eyes) == 0):
+                cv2.putText(img, "No face found...", org, font, font_scale, weared_mask_font_color, thickness, cv2.LINE_AA)
+                cv2.imwrite(f"./result/comMascara/img{i}-naoEncontrouFace.jpg", img)
         else:
-            for (mx, my, mw, mh) in mouth_rects:
+            for (mx, my, mw, mh) in eyes:
+                    if(y < my < y + h):
+                        # Face and Eyes are detected but eyes coordinates are within face coordinates which `means eyes prediction is true and
+                        # we successfully detected a face
+                        bandeira2 = True
+                        #cv2.rectangle(img, (mx, my), (mx + mh, my + mw), (0, 0, 255), 3)
+                        break
+            if(bandeira2):
+                for (x, y, w, h) in eyes:
+                    # cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                    roi_gray = gray[y:y + h, x:x + w]
+                    roi_color = img[y:y + h, x:x + w]
 
-                if(y < my < y + h):
-                    # Face and Lips are detected but lips coordinates are within face cordinates which `means lips prediction is true and
-                    # person is not waring mask
-                    bandeira = True
-                    cv2.putText(img, not_wearing_mask, org, font, font_scale, not_wearing_mask_font_color, thickness, cv2.LINE_AA)
-                    cv2.imwrite(f"./result/semMascara/img{i}-naoDetectada2.jpg", img)
+                # Detect lips counters
+                mouth_rects = mouth_cascade.detectMultiScale(gray, 1.05, 30, minSize=(50, 50))
 
-                    #cv2.rectangle(img, (mx, my), (mx + mh, my + mw), (0, 0, 255), 3)
-                    break
-            if(not bandeira): 
-                cv2.putText(img, weared_mask, org, font, font_scale, weared_mask_font_color, thickness, cv2.LINE_AA)
-                # cv2.rectangle(img, (mx, my), (mx + mh, my + mw), (0, 0, 255), 3)
-                cv2.imwrite(f"./result/semMascara/img{i}-Detectada5.jpg", img) 
+                # Face detected but Lips not detected which means person is wearing mask
+                if(len(mouth_rects) == 0):
+                    cv2.putText(img, weared_mask, org, font, font_scale, weared_mask_font_color, thickness, cv2.LINE_AA)
+                    cv2.imwrite(f"./result/comMascara/img{i}-Detectada4.jpg", img)
+                else:
+                    for (x, y, w, h) in mouth_rects:
+                        # cv2.rectangle(img, (x, y), (x + w, y + h), (0, 0, 255), 2)
+                        roi_gray = gray[y:y + h, x:x + w]
+                        roi_color = img[y:y + h, x:x + w]
 
+                    for (mx, my, mw, mh) in mouth_rects:
+                        if(y < my < y + h):
+                            # Face and Lips are detected but lips coordinates are within face cordinates which `means lips prediction is true and
+                            # person is not waring mask
+                            bandeira = True
+                            cv2.putText(img, not_wearing_mask, org, font, font_scale, not_wearing_mask_font_color, thickness, cv2.LINE_AA)
+                            cv2.imwrite(f"./result/comMascara/img{i}-naoDetectada5.jpg", img)
+
+                            #cv2.rectangle(img, (mx, my), (mx + mh, my + mw), (0, 0, 255), 3)
+                            break
+                    if(not bandeira): 
+                        cv2.putText(img, weared_mask, org, font, font_scale, weared_mask_font_color, thickness, cv2.LINE_AA)
+                        # cv2.rectangle(img, (mx, my), (mx + mh, my + mw), (0, 0, 255), 3)
+                        cv2.imwrite(f"./result/comMascara/img{i}-detectada6.jpg", img) 
+            else:
+                cv2.putText(img, not_wearing_mask, org, font, font_scale,
+                            not_wearing_mask_font_color, thickness, cv2.LINE_AA)
+                cv2.imwrite(
+                    f"./result/comMascara/img{i}-naoDetectada7.jpg", img)
     i = i+1
     # Show frame with results
     # cv2.imshow('Mask Detection', img)
